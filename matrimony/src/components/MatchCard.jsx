@@ -1,11 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MatchCard({ profile }) {
+  const navigate = useNavigate();
+
   return (
     <article className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-xl p-5 shadow-card hover:shadow-premium transition-all relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-amber-wedding opacity-0 group-hover:opacity-100 transition-opacity" />
       
-      <div className="flex items-start gap-4">
+      
+      <div 
+        onClick={() => navigate(`/member/${profile.id}`)}
+        className="flex items-start gap-4 cursor-pointer"
+      >
         <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary-soft to-gray-100 dark:from-[#2b2725] dark:to-[#171412] flex items-center justify-center flex-shrink-0 border border-primary/10">
           <span className="text-2xl opacity-70">👤</span>
         </div>
@@ -13,7 +20,9 @@ export default function MatchCard({ profile }) {
           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary mb-1">
             {profile.religion || 'Verified'}
           </span>
-          <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate">{profile.username}</h3>
+          <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">
+            {profile.username}
+          </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">📍 {profile.location || 'Mumbai, IN'}</p>
         </div>
         <div className="text-right">
@@ -22,7 +31,7 @@ export default function MatchCard({ profile }) {
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex gap-2 relative z-10">
         <button className="flex-1 px-3 py-2 rounded-lg bg-primary hover:bg-primary-600 text-white font-medium text-xs tracking-wide transition-colors shadow-sm">
           Connect Now
         </button>
