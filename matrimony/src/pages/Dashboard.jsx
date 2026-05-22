@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Added router import
+import { useNavigate } from 'react-router-dom';
 import MatchCard from '../components/MatchCard';
 
 const API = 'http://127.0.0.1:8000/api';
 
 export default function Dashboard() {
-  const navigate = useNavigate(); // Initialize navigation hooks
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [matches, setMatches] = useState([]);
   const [visitors, setVisitors] = useState([]); 
@@ -48,7 +48,8 @@ export default function Dashboard() {
         </div>
         <div className="max-w-xl space-y-2 relative z-10">
           <span className="text-amber-wedding text-xs uppercase tracking-widest font-bold">Welcome Back</span>
-          <h1 className="text-2xl md:text-3xl font-serif font-semibold">Namaste, {user.username}!</h1>
+          {/* Changed user.username -> user.full_name */}
+          <h1 className="text-2xl md:text-3xl font-serif font-semibold">Namaste, {user.full_name}!</h1>
           <p className="text-primary-50/80 text-sm font-light leading-relaxed">
             "{user.bio || 'Your journey toward a lifetime connection begins here. Complete your discovery fields to view premium listings.'}"
           </p>
@@ -88,8 +89,9 @@ export default function Dashboard() {
                     👤
                   </div>
                   <div className="flex-1 min-w-0">
+                    {/* Changed log.visitor_details.username -> log.visitor_details.full_name */}
                     <h4 className="text-xs font-semibold text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">
-                      {log.visitor_details.username}
+                      {log.visitor_details.full_name}
                     </h4>
                     <p className="text-[10px] text-gray-400 mt-0.5">
                       {new Date(log.timestamp).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}

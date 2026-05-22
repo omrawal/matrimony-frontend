@@ -8,7 +8,6 @@ export default function MatchCard({ profile }) {
     <article className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-xl p-5 shadow-card hover:shadow-premium transition-all relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-amber-wedding opacity-0 group-hover:opacity-100 transition-opacity" />
       
-      
       <div 
         onClick={() => navigate(`/member/${profile.id}`)}
         className="flex items-start gap-4 cursor-pointer"
@@ -20,8 +19,9 @@ export default function MatchCard({ profile }) {
           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary mb-1">
             {profile.religion || 'Verified'}
           </span>
+          {/* Changed profile.username -> profile.full_name */}
           <h3 className="font-semibold text-base text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">
-            {profile.username}
+            {profile.full_name}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">📍 {profile.location || 'Mumbai, IN'}</p>
         </div>

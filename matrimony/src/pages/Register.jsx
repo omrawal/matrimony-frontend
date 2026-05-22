@@ -4,78 +4,117 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [gender, setGender] = useState('');
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    first_name: '',
+    last_name: '',
+    age: '',
+    gender: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!gender) {
-      alert('Please select your gender to continue.');
+    if (!formData.gender) {
+      alert('Please select your gender.');
       return;
     }
 
     try {
-      // Connect to your backend creation route with validation payload
-      await axios.post('http://127.0.0.1:8000/api/users/', { 
-        username, 
-        password, 
-        gender 
-      });
+      await axios.post('http://127.0.0.1:8000/api/users/', formData);
       navigate('/login');
     } catch (err) {
       console.error(err);
-      alert('Registration failed. Please try again.');
+      alert('Registration failed. Please make sure you are 18 or older and filling all required fields.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center bg-neutral-50 dark:bg-[#171412]">
+    <div className="min-h-screen flex items-center bg-neutral-50 dark:bg-[#171412] py-12">
       <div className="container grid md:grid-cols-2 gap-8 items-center">
         <div className="space-y-4">
           <p className="text-sm text-primary font-medium tracking-wide">Join our community</p>
           <h1 className="text-3xl font-serif font-semibold text-gray-900 dark:text-white">Create your profile in minutes.</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl">
-            Add a few details and we’ll help find compatible matches.
+            Provide your details below and we’ll match you with compatible prospects.
           </p>
         </div>
 
         <div className="bg-white dark:bg-[#211d1a] border border-gray-100 dark:border-[#393536] rounded-xl p-6 shadow-premium">
-          <h2 className="text-lg font-serif font-semibold mb-4 text-gray-950 dark:text-white">Register</h2>
+          <h2 className="text-lg font-serif font-semibold mb-4 text-gray-950 dark:text-white">Register Account</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input 
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm focus:outline-primary dark:text-white" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              placeholder="Username" 
-              required 
-            />
-            <input 
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm focus:outline-primary dark:text-white" 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Password" 
-              required 
-            />
             
-            {/* Mandatory Matrimonial Custom Dropdown */}
-            <select
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm focus:outline-primary text-gray-700 dark:text-gray-200"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              required
-            >
-              <option value="" disabled className="dark:bg-[#211d1a]">Select Your Gender *</option>
-              <option value="male" className="dark:bg-[#211d1a]">Male</option>
-              <option value="female" className="dark:bg-[#211d1a]">Female</option>
-            </select>
+            {/* Split row layout for first name and last name fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <input 
+                className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+                name="first_name"
+                value={formData.first_name} 
+                onChange={handleChange} 
+                placeholder="First Name *" 
+                required 
+              />
+              <input 
+                className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+                name="last_name"
+                value={formData.last_name} 
+                onChange={handleChange} 
+                placeholder="Last Name *" 
+                required 
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <input 
+                type="number"
+                className="col-span-1 w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+                name="age"
+                value={formData.age} 
+                onChange={handleChange} 
+                placeholder="Age *" 
+                min="18"
+                required 
+              />
+              <select
+                className="col-span-2 w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-700 dark:text-gray-200 focus:outline-primary"
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled className="dark:bg-[#211d1a]">Select Gender *</option>
+                <option value="male" className="dark:bg-[#211d1a]">Male</option>
+                <option value="female" className="dark:bg-[#211d1a]">Female</option>
+              </select>
+            </div>
+
+            <input 
+              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+              name="username"
+              value={formData.username} 
+              onChange={handleChange} 
+              placeholder="Username Login Key *" 
+              required 
+            />
+            <input 
+              type="password"
+              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+              name="password"
+              value={formData.password} 
+              onChange={handleChange} 
+              placeholder="Secure Password *" 
+              required 
+            />
 
             <div className="flex items-center justify-between pt-2">
               <Button type="submit">Create account</Button>
               <Link to="/login" className="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-                Already have an account?
+                Already registered?
               </Link>
             </div>
           </form>

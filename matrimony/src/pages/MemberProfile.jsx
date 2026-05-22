@@ -50,7 +50,7 @@ export default function MemberProfile() {
         </div>
         <div className="flex-1 space-y-1">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">{member.username}</h1>
+            <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">{member.full_name}</h1>
             <span className="px-2.5 py-0.5 bg-amber-wedding/10 text-amber-wedding border border-amber-wedding/20 text-[10px] font-bold tracking-wider uppercase rounded-full">Premium Match</span>
           </div>
           <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
