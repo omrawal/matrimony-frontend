@@ -8,6 +8,7 @@ export default function Register() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
+    email: '',
     first_name: '',
     last_name: '',
     age: '',
@@ -108,6 +109,15 @@ export default function Register() {
               value={formData.password} 
               onChange={handleChange} 
               placeholder="Secure Password *" 
+              required 
+            />
+            <input 
+              type="email"
+              className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
+              name="email"
+              value={formData.email} 
+              onChange={handleChange} 
+              placeholder="Email Address *" 
               required 
             />
 

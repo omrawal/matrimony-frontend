@@ -15,7 +15,16 @@ export default function Login() {
       const loginRes = await axios.post(`${API}/login/`, { username, password });
       localStorage.setItem('token', loginRes.data.token);
       localStorage.setItem('user_id', loginRes.data.user_id);
+      const userRes = await axios.get(`${API}/me/`, {
+      headers: { Authorization: `Token ${loginRes.data.token}` }
+    });
+    
+    // Redirect based on verification status
+    if (userRes.data.is_verified) {
       navigate('/dashboard');
+    } else {
+      navigate('/verify-account');
+    }
     } catch (error) {
       console.error(error);
       alert('Invalid credentials');
