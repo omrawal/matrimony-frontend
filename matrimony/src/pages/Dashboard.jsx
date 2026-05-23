@@ -9,7 +9,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [matches, setMatches] = useState([]);
-  const [visitors, setVisitors] = useState([]); 
+  const [visitors, setVisitors] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   if (!user) return (
     <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"/>
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -80,22 +80,21 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-xl p-3 max-h-[400px] overflow-y-auto space-y-2 shadow-card">
             {visitors.length > 0 ? (
               visitors.map(log => (
-                <div 
-                  key={log.id} 
-                  onClick={() => navigate(`/member/${log.visitor_details.id}`)}
-                  className="flex items-center gap-3 border-b border-gray-50/50 dark:border-[#2b2725]/50 pb-2 last:border-none last:pb-0 cursor-pointer group p-1.5 rounded-lg hover:bg-neutral-50 dark:hover:bg-[#2b2725] transition-all"
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary/5 text-xs flex items-center justify-center border border-primary/10 group-hover:border-primary/30 transition-colors">
-                    👤
+                <div key={log.id} className="flex items-center gap-4 p-3 border-b">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {log.visitor_details.profile_picture ? (
+                      <img
+                        src={log.visitor_details.profile_picture}
+                        alt={log.visitor_details.full_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xl">👤</span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    {/* Changed log.visitor_details.username -> log.visitor_details.full_name */}
-                    <h4 className="text-xs font-semibold text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">
-                      {log.visitor_details.full_name}
-                    </h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {new Date(log.timestamp).toLocaleDateString(undefined, {month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}
-                    </p>
+                  <div>
+                    <p className="font-bold">{log.visitor_details.full_name}</p>
+                    <p className="text-xs text-gray-500">Viewed on {new Date(log.timestamp).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))

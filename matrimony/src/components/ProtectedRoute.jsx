@@ -38,6 +38,16 @@ export default function ProtectedRoute({ children }) {
   
   if (!user) return <Navigate to="/login" />;
 
+  if (user.is_staff) {
+    // If the admin lands on the root, user dashboard, or verification page, 
+    // redirect them instantly to the admin dashboard.
+    if (['/', '/dashboard', '/verify-account'].includes(location.pathname)) {
+      return <Navigate to="/admin" />;
+    }
+    // Otherwise, let them access the route they requested
+    return children;
+  }
+
   // Trap unverified users on the verification page
   if (!user.is_verified && location.pathname !== '/verify-account') {
     return <Navigate to="/verify-account" />;
