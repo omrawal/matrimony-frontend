@@ -10,6 +10,7 @@ import PublicRoute from './components/PublicRoute';
 import MemberProfile from './pages/MemberProfile';
 import VerifyAccount from './pages/VerifyAccount';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUserManagement from './pages/AdminUserManagement';
 
 export default function App() {
   return (
@@ -24,7 +25,7 @@ export default function App() {
         <Route path="/member/:id" element={<ProtectedRoute><Layout><MemberProfile/></Layout></ProtectedRoute>} />
         <Route path="/verify-account" element={<ProtectedRoute><Layout><VerifyAccount /></Layout></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-        
+        <Route path="/admin/users" element={<ProtectedRoute><Layout><AdminUserManagement /></Layout></ProtectedRoute>} />
         <Route path="*" element={localStorage.getItem('token') ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       </Routes>
     </Router>

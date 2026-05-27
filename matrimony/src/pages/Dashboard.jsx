@@ -48,7 +48,6 @@ export default function Dashboard() {
         </div>
         <div className="max-w-xl space-y-2 relative z-10">
           <span className="text-amber-wedding text-xs uppercase tracking-widest font-bold">Welcome Back</span>
-          {/* Changed user.username -> user.full_name */}
           <h1 className="text-2xl md:text-3xl font-serif font-semibold">Namaste, {user.full_name}!</h1>
           <p className="text-primary-50/80 text-sm font-light leading-relaxed">
             "{user.bio || 'Your journey toward a lifetime connection begins here. Complete your discovery fields to view premium listings.'}"
@@ -58,6 +57,7 @@ export default function Dashboard() {
 
       {/* Content Layout Split Columns Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
         {/* Matches Feed */}
         <div className="lg:col-span-3 space-y-4">
           <h2 className="text-lg font-serif font-semibold text-gray-900 dark:text-white border-b border-gray-100 dark:border-[#2b2725] pb-2">
@@ -77,24 +77,33 @@ export default function Dashboard() {
             <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-sans font-bold">{visitors.length}</span>
           </h2>
 
-          <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-xl p-3 max-h-[400px] overflow-y-auto space-y-2 shadow-card">
+          <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-xl p-2 max-h-[400px] overflow-y-auto space-y-1 shadow-card">
             {visitors.length > 0 ? (
               visitors.map(log => (
-                <div key={log.id} className="flex items-center gap-4 p-3 border-b">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                <div 
+                  key={log.id} 
+                  /* FIX APPLIED HERE: Added onClick navigation and hover styles */
+                  onClick={() => navigate(`/member/${log.visitor_details.id}`)}
+                  className="flex items-center gap-4 p-3 border-b border-gray-50 dark:border-[#2b2725] last:border-0 hover:bg-gray-50 dark:hover:bg-black/20 cursor-pointer transition-colors rounded-lg group"
+                >
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-[#2b2725] flex items-center justify-center border border-gray-200 dark:border-[#3a3634] flex-shrink-0">
                     {log.visitor_details.profile_picture ? (
                       <img
                         src={log.visitor_details.profile_picture}
                         alt={log.visitor_details.full_name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
-                      <span className="text-xl">👤</span>
+                      <span className="text-xl opacity-50">👤</span>
                     )}
                   </div>
-                  <div>
-                    <p className="font-bold">{log.visitor_details.full_name}</p>
-                    <p className="text-xs text-gray-500">Viewed on {new Date(log.timestamp).toLocaleDateString()}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate group-hover:text-primary transition-colors">
+                      {log.visitor_details.full_name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
                 </div>
               ))

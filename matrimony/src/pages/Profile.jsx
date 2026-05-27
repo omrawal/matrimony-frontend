@@ -4,111 +4,228 @@ import axios from 'axios';
 const API = 'http://127.0.0.1:8000/api';
 
 export default function Profile() {
-  const [profile, setProfile] = useState({ bio: '', location: '', cast: '', age: '' });
-  const [isEditing, setIsEditing] = useState(false);
-  const token = localStorage.getItem('token');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get(`${API}/me/`, {
-          headers: { Authorization: `Token ${token}` }
-        });
-        setProfile(response.data);
-      } catch (err) {
-        console.error('Error fetching profile', err);
-      }
-    };
-    fetchProfile();
-  }, [token]);
+  // Form State
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    age: '',
+    cast: '',
+    location: '',
+    preferences: '',
+    bio: ''
+  });
 
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = async () => {
+  const fetchProfile = async () => {
+    const token = localStorage.getItem('token');
     try {
-      const response = await axios.patch(`${API}/users/${profile.id}/`, profile, {
+      const res = await axios.get(`${API}/me/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      setProfile(response.data);
-      setIsEditing(false);
-      alert('Profile updated configuration successfully!');
+      setUser(res.data);
+      setFormData({
+        first_name: res.data.first_name || '',
+        last_name: res.data.last_name || '',
+        age: res.data.age || '',
+        cast: res.data.cast || '',
+        location: res.data.location || '',
+        preferences: res.data.preferences || '',
+        bio: res.data.bio || ''
+      });
     } catch (err) {
-      console.error('Update failed', err);
+      console.error("Failed to load profile", err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  // --- TEXT FIELDS LOGIC ---
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveDetails = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const token = localStorage.getItem('token');
+    try {
+      await axios.patch(`${API}/me/`, formData, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      alert("Profile details updated successfully!");
+      fetchProfile(); // Refresh to update standard display
+    } catch (err) {
+      console.error("Failed to update profile", err);
+      alert("Failed to update details.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // --- PHOTO MANAGEMENT LOGIC ---
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const token = localStorage.getItem('token');
+
+    try {
+      // 1. Get Signature
+      const sigRes = await axios.get(`${API}/upload-signature/?folder=matrimony_profiles`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      const { signature, timestamp, api_key, cloud_name, folder } = sigRes.data;
+
+      // 2. Upload to Cloudinary
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+      uploadData.append('api_key', api_key);
+      uploadData.append('timestamp', timestamp);
+      uploadData.append('signature', signature);
+      uploadData.append('folder', folder);
+
+      const cloudinaryRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+        uploadData
+      );
+
+      // 3. Save URL to Backend
+      await axios.post(`${API}/me/photos/add/`, 
+        { url: cloudinaryRes.data.secure_url },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+
+      fetchProfile(); // Refresh the album
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload image.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePhotoAction = async (url, action) => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.post(`${API}/me/photos/${action}/`, 
+        { url: url },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      fetchProfile(); // Refresh UI
+    } catch (err) {
+      console.error(`Action ${action} failed`, err);
+    }
+  };
+
+  if (loading) return <div className="text-center py-20">Loading...</div>;
+
   return (
-    <div className="max-w-2xl mx-auto bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl shadow-premium overflow-hidden">
-      <div className="bg-gradient-to-r from-primary to-primary-600 px-6 py-4 text-white">
-        <h2 className="text-lg font-serif font-semibold">Personal Profile Center</h2>
-        <p className="text-xs text-primary-50/70">Manage your presentation fields for prospective connections</p>
+    <div className="max-w-4xl mx-auto space-y-8 p-4">
+      <h1 className="text-3xl font-serif font-bold dark:text-white">Manage My Profile</h1>
+
+      {/* --- PHOTO GALLERY SECTION --- */}
+      <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-card">
+        <div className="flex justify-between items-end border-b border-gray-50 dark:border-[#2b2725] pb-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold dark:text-white">Photo Album</h2>
+            <p className="text-sm text-gray-500">Manage your public photos. Set your favorite as the profile picture.</p>
+          </div>
+          <div>
+            <input type="file" accept="image/*" id="photo-upload" className="hidden" onChange={handlePhotoUpload} />
+            <label htmlFor="photo-upload" className="cursor-pointer px-4 py-2 bg-primary hover:bg-primary-600 text-white text-sm font-bold rounded-lg transition-colors shadow">
+              {isUploading ? 'Uploading...' : '+ Add Photo'}
+            </label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {user.album && user.album.map((url, idx) => {
+            const isProfilePic = url === user.profile_picture;
+            return (
+              <div key={idx} className={`relative group aspect-square rounded-xl overflow-hidden border-4 transition-all ${isProfilePic ? 'border-primary' : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'}`}>
+                <img src={url} alt="Gallery" className="w-full h-full object-cover" />
+                
+                {/* Status Badge */}
+                {isProfilePic && (
+                  <div className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded shadow">
+                    Profile Pic
+                  </div>
+                )}
+
+                {/* Hover Controls */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                  {!isProfilePic && (
+                    <button 
+                      onClick={() => handlePhotoAction(url, 'set-profile')}
+                      className="bg-white text-gray-900 text-xs font-bold px-3 py-1.5 rounded hover:bg-gray-200 transition"
+                    >
+                      Make Profile Pic
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handlePhotoAction(url, 'delete')}
+                    className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-red-600 transition"
+                  >
+                    Delete Photo
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="p-6 space-y-6">
-        {isEditing ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Age</label>
-                <input name="age" type="number" className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#3a3634] bg-transparent text-sm focus:outline-primary" value={profile.age || ''} onChange={handleChange} placeholder="e.g. 27" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Location</label>
-                <input name="location" className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#3a3634] bg-transparent text-sm focus:outline-primary" value={profile.location || ''} onChange={handleChange} placeholder="e.g. Mumbai" />
-              </div>
+      {/* --- TEXT DETAILS SECTION --- */}
+      <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-card">
+        <h2 className="text-xl font-bold dark:text-white border-b border-gray-50 dark:border-[#2b2725] pb-4 mb-6">Personal Details</h2>
+        
+        <form onSubmit={handleSaveDetails} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">First Name</label>
+              <input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" required />
             </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Community / Caste</label>
-              <input name="cast" className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#3a3634] bg-transparent text-sm focus:outline-primary" value={profile.cast || ''} onChange={handleChange} placeholder="e.g. Brahmin" />
+            <div>
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">Last Name</label>
+              <input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" required />
             </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">About Me / Bio</label>
-              <textarea name="bio" rows={4} className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#3a3634] bg-transparent text-sm focus:outline-primary" value={profile.bio || ''} onChange={handleChange} placeholder="Describe yourself, your career, and your expectations..." />
+            <div>
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">Age</label>
+              <input type="number" name="age" value={formData.age} onChange={handleInputChange} className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" required />
             </div>
-
-            <div className="flex gap-2 pt-2">
-              <button onClick={handleSave} className="px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors">
-                Save Details
-              </button>
-              <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-200 dark:border-[#3a3634] rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
-                Cancel
-              </button>
+            <div>
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">Community / Cast</label>
+              <input type="text" name="cast" value={formData.cast} onChange={handleInputChange} className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">Location</label>
+              <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">About Me (Bio)</label>
+              <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows="4" className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2 dark:text-gray-300">Partner Preferences</label>
+              <textarea name="preferences" value={formData.preferences} onChange={handleInputChange} rows="3" className="w-full p-3 bg-gray-50 dark:bg-[#2b2725] border border-gray-200 dark:border-gray-700 rounded-lg dark:text-white" />
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 border-b border-gray-50 dark:border-[#2b2725] pb-4">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Current Age</span>
-                <p className="text-base font-semibold text-gray-900 dark:text-white mt-0.5">{profile.age ? `${profile.age} Years` : 'Not configured'}</p>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Residing City</span>
-                <p className="text-base font-semibold text-gray-900 dark:text-white mt-0.5">{profile.location || 'Not set'}</p>
-              </div>
-            </div>
 
-            <div className="border-b border-gray-50 dark:border-[#2b2725] pb-4">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Community Affiliation</span>
-              <p className="text-base font-semibold text-gray-900 dark:text-white mt-0.5">{profile.cast || 'Not configured'}</p>
-            </div>
-
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Personal Narrative</span>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-relaxed italic">
-                "{profile.bio || 'No personal profile background narrative configured yet.'}"
-              </p>
-            </div>
-
-            <button onClick={() => setIsEditing(true)} className="mt-4 px-4 py-2 border border-primary text-primary hover:bg-primary/5 rounded-lg text-sm font-medium transition-colors">
-              Modify Profile Settings
+          <div className="flex justify-end pt-4">
+            <button type="submit" disabled={isSaving} className="px-6 py-3 bg-primary hover:bg-primary-600 text-white font-bold rounded-lg transition-colors shadow">
+              {isSaving ? 'Saving Changes...' : 'Save Details'}
             </button>
           </div>
-        )}
+        </form>
       </div>
     </div>
   );
