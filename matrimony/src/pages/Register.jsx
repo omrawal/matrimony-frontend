@@ -51,7 +51,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* Split row layout for first name and last name fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input 
                 className="w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 
                 name="first_name"
@@ -70,7 +70,7 @@ export default function Register() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input 
                 type="number"
                 className="col-span-1 w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary" 

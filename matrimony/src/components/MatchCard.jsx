@@ -24,7 +24,7 @@ export default function MatchCard({ profile }) {
             <span className="text-4xl opacity-50">👤</span>
           )}
         </div>
-        
+
         <div className="flex-1 min-w-0 pt-1">
           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary mb-1">
             {profile.religion || 'Verified'}
@@ -34,18 +34,18 @@ export default function MatchCard({ profile }) {
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">📍 {profile.location || 'Mumbai, IN'}</p>
         </div>
-        
+
         <div className="text-right pt-1">
           <p className="text-xl font-bold text-primary leading-none">{profile.age}</p>
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Yrs</p>
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2 relative z-10 pt-4 border-t border-gray-50 dark:border-[#2b2725]">
-        <button className="flex-1 px-3 py-2 rounded-lg bg-primary hover:bg-primary-600 text-white font-medium text-xs tracking-wide transition-colors shadow-sm">
+      <div className="mt-5 flex flex-col sm:flex-row gap-2 relative z-10 pt-4 border-t border-gray-50 dark:border-[#2b2725]">
+        <button className="w-full sm:flex-1 px-3 py-2.5 rounded-lg bg-primary hover:bg-primary-600 text-white font-medium text-sm tracking-wide transition-colors shadow-sm">
           Connect Now
         </button>
-        <button className="px-3 py-2 rounded-lg border border-gray-200 dark:border-[#3a3634] text-gray-600 dark:text-gray-300 font-medium text-xs hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
+        <button className="w-full sm:w-auto px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#3a3634] text-gray-600 dark:text-gray-300 font-medium text-sm hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
           Shortlist
         </button>
       </div>
