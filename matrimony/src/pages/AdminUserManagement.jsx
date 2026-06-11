@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function AdminUserManagement() {
   const [users, setUsers] = useState([]);
@@ -16,7 +15,7 @@ export default function AdminUserManagement() {
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.get(`${API}/admin/manage-users/`, {
+      const res = await axios.get(`${API_URL}/admin/manage-users/`, {
         headers: { Authorization: `Token ${token}` }
       });
       setUsers(res.data);
@@ -59,7 +58,7 @@ export default function AdminUserManagement() {
     setIsSaving(true);
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.patch(`${API}/admin/manage-users/${editingUser.id}/`, formData, {
+      const res = await axios.patch(`${API_URL}/admin/manage-users/${editingUser.id}/`, formData, {
         headers: { Authorization: `Token ${token}` }
       });
       alert("User updated successfully.");
@@ -81,7 +80,7 @@ export default function AdminUserManagement() {
 
     try {
       // 1. Get Signature
-      const sigRes = await axios.get(`${API}/upload-signature/?folder=matrimony_profiles`, {
+      const sigRes = await axios.get(`${API_URL}/upload-signature/?folder=matrimony_profiles`, {
         headers: { Authorization: `Token ${token}` }
       });
       const { signature, timestamp, api_key, cloud_name, folder } = sigRes.data;
@@ -100,13 +99,13 @@ export default function AdminUserManagement() {
       );
 
       // 3. Save URL to User's Profile via Admin API
-      await axios.post(`${API}/admin/manage-users/${editingUser.id}/photos/add/`,
+      await axios.post(`${API_URL}/admin/manage-users/${editingUser.id}/photos/add/`,
         { url: cloudinaryRes.data.secure_url },
         { headers: { Authorization: `Token ${token}` } }
       );
 
       // 4. Refresh specific user data
-      const res = await axios.get(`${API}/admin/manage-users/`, { headers: { Authorization: `Token ${token}` } });
+      const res = await axios.get(`${API_URL}/admin/manage-users/`, { headers: { Authorization: `Token ${token}` } });
       const updatedUser = res.data.find(u => u.id === editingUser.id);
       setEditingUser(updatedUser);
 
@@ -123,10 +122,10 @@ export default function AdminUserManagement() {
     if (action === 'delete' && !window.confirm("Delete this photo permanently?")) return;
     const token = localStorage.getItem('token');
     try {
-      await axios.post(`${API}/admin/manage-users/${editingUser.id}/photos/${action}/`, { url }, {
+      await axios.post(`${API_URL}/admin/manage-users/${editingUser.id}/photos/${action}/`, { url }, {
         headers: { Authorization: `Token ${token}` }
       });
-      const res = await axios.get(`${API}/admin/manage-users/`, { headers: { Authorization: `Token ${token}` } });
+      const res = await axios.get(`${API_URL}/admin/manage-users/`, { headers: { Authorization: `Token ${token}` } });
       const updatedUser = res.data.find(u => u.id === editingUser.id);
       setEditingUser(updatedUser);
     } catch (err) {

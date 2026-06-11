@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PhotoManager from '../components/PhotoManager';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function VerifyAccount() {
     const [status, setStatus] = useState('loading');
@@ -18,7 +17,7 @@ export default function VerifyAccount() {
         const checkStatus = async () => {
             const token = localStorage.getItem('token');
             try {
-                const res = await axios.get(`${API}/me/`, {
+                const res = await axios.get(`${API_URL}/me/`, {
                     headers: { Authorization: `Token ${token}` }
                 });
                 setStatus(res.data.verification_status);
@@ -45,7 +44,7 @@ export default function VerifyAccount() {
 
         try {
             console.log("Starting upload..."); // ADD THIS
-            const sigResponse = await axios.get(`${API}/get-signature/`, {
+            const sigResponse = await axios.get(`${API_URL}/get-signature/`, {
                 headers: { Authorization: `Token ${token}` }
             });
             console.log("Signature received:", sigResponse.data); // ADD THIS
@@ -81,7 +80,7 @@ export default function VerifyAccount() {
 
         const token = localStorage.getItem('token');
         try {
-            await axios.post(`${API}/complete-onboarding/`, {
+            await axios.post(`${API_URL}/complete-onboarding/`, {
                 photos: photos,
                 profile_pic_url: profilePicUrl,
                 id_proofs: idProofUrls

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -12,10 +11,10 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const loginRes = await axios.post(`${API}/login/`, { username, password });
+      const loginRes = await axios.post(`${API_URL}/login/`, { username, password });
       localStorage.setItem('token', loginRes.data.token);
       localStorage.setItem('user_id', loginRes.data.user_id);
-      const userRes = await axios.get(`${API}/me/`, {
+      const userRes = await axios.get(`${API_URL}/me/`, {
       headers: { Authorization: `Token ${loginRes.data.token}` }
     });
     

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import MatchCard from '../components/MatchCard';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,13 +15,13 @@ export default function Dashboard() {
     const fetchDashboardContent = async () => {
       const token = localStorage.getItem('token');
       try {
-        const userRes = await axios.get(`${API}/me/`, { headers: { Authorization: `Token ${token}` } });
+        const userRes = await axios.get(`${API_URL}/me/`, { headers: { Authorization: `Token ${token}` } });
         setUser(userRes.data);
 
-        const matchesRes = await axios.get(`${API}/users/`, { headers: { Authorization: `Token ${token}` } });
+        const matchesRes = await axios.get(`${API_URL}/users/`, { headers: { Authorization: `Token ${token}` } });
         setMatches(matchesRes.data);
 
-        const visitorsRes = await axios.get(`${API}/visitors/`, { headers: { Authorization: `Token ${token}` } });
+        const visitorsRes = await axios.get(`${API_URL}/visitors/`, { headers: { Authorization: `Token ${token}` } });
         setVisitors(visitorsRes.data);
       } catch (err) {
         console.error("Dashboard synchronization error", err);

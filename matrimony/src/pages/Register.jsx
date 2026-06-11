@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post('http://127.0.0.1:8000/api/users/', formData);
+      await axios.post(`${API_URL}/users/`, formData);
       navigate('/login');
     } catch (err) {
       console.error(err);

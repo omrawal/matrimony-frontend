@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function PhotoManager({ 
   photos, 
@@ -25,7 +24,7 @@ export default function PhotoManager({
       // Loop through and upload each selected file
       for (const file of files) {
         // 1. Get Signature
-        const sigResponse = await axios.get(`${API}/get-signature/`, {
+        const sigResponse = await axios.get(`${API_URL}/get-signature/`, {
           headers: { Authorization: `Token ${token}` }
         });
         const { signature, timestamp, api_key, cloud_name, folder } = sigResponse.data;

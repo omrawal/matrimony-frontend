@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function MemberProfile() {
   const { id } = useParams();
@@ -17,7 +16,7 @@ export default function MemberProfile() {
     const fetchMemberProfile = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get(`${API}/users/${id}/`, {
+        const response = await axios.get(`${API_URL}/users/${id}/`, {
           headers: { Authorization: `Token ${token}` }
         });
         setMember(response.data);

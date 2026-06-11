@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 // 1. ADD { children } to the props
 export default function ProtectedRoute({ children }) {
@@ -17,7 +18,7 @@ export default function ProtectedRoute({ children }) {
       }
 
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/me/', {
+        const res = await axios.get(`${API_URL}/me/`, {
           headers: { Authorization: `Token ${token}` }
         });
         setUser(res.data);

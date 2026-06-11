@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -23,7 +22,7 @@ export default function Profile() {
   const fetchProfile = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.get(`${API}/me/`, {
+      const res = await axios.get(`${API_URL}/me/`, {
         headers: { Authorization: `Token ${token}` }
       });
       setUser(res.data);
@@ -57,7 +56,7 @@ export default function Profile() {
     setIsSaving(true);
     const token = localStorage.getItem('token');
     try {
-      await axios.patch(`${API}/me/`, formData, {
+      await axios.patch(`${API_URL}/me/`, formData, {
         headers: { Authorization: `Token ${token}` }
       });
       alert("Profile details updated successfully!");
@@ -80,7 +79,7 @@ export default function Profile() {
 
     try {
       // 1. Get Signature
-      const sigRes = await axios.get(`${API}/upload-signature/?folder=matrimony_profiles`, {
+      const sigRes = await axios.get(`${API_URL}/upload-signature/?folder=matrimony_profiles`, {
         headers: { Authorization: `Token ${token}` }
       });
       const { signature, timestamp, api_key, cloud_name, folder } = sigRes.data;
@@ -99,7 +98,7 @@ export default function Profile() {
       );
 
       // 3. Save URL to Backend
-      await axios.post(`${API}/me/photos/add/`, 
+      await axios.post(`${API_URL}/me/photos/add/`, 
         { url: cloudinaryRes.data.secure_url },
         { headers: { Authorization: `Token ${token}` } }
       );
@@ -116,7 +115,7 @@ export default function Profile() {
   const handlePhotoAction = async (url, action) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.post(`${API}/me/photos/${action}/`, 
+      await axios.post(`${API_URL}/me/photos/${action}/`, 
         { url: url },
         { headers: { Authorization: `Token ${token}` } }
       );

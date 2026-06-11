@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API = 'http://127.0.0.1:8000/api';
+import { API_URL } from '../utils/api';
 
 export default function AdminDashboard() {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -13,7 +12,7 @@ export default function AdminDashboard() {
   const fetchPendingUsers = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await axios.get(`${API}/admin/pending-verifications/`, {
+      const res = await axios.get(`${API_URL}/admin/pending-verifications/`, {
         headers: { Authorization: `Token ${token}` }
       });
       
@@ -62,7 +61,7 @@ export default function AdminDashboard() {
 
     const token = localStorage.getItem('token');
     try {
-      await axios.post(`${API}/admin/verify-user/${user.id}/`, { 
+      await axios.post(`${API_URL}/admin/verify-user/${user.id}/`, { 
         action: action,
         approved_photos: action === 'approve' ? user.selectedPhotos : [] 
       }, { 
