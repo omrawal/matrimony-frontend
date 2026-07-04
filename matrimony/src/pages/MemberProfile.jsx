@@ -8,9 +8,13 @@ export default function MemberProfile() {
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // NEW: State for the lightbox popup
   const [lightboxImg, setLightboxImg] = useState(null);
+
+  // --- NEW: CONTACT MODAL STATE ---
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactDetails, setContactDetails] = useState(null);
+  const [contactError, setContactError] = useState('');
+  const [loadingContact, setLoadingContact] = useState(false);
 
   useEffect(() => {
     const fetchMemberProfile = async () => {
@@ -28,6 +32,29 @@ export default function MemberProfile() {
     };
     fetchMemberProfile();
   }, [id]);
+
+  // --- NEW: FETCH SECURE CONTACT DETAILS ---
+  const fetchContactDetails = async () => {
+    setLoadingContact(true);
+    setContactError('');
+    setShowContactModal(true); // Open modal immediately so user sees loading state
+    
+    const token = localStorage.getItem('token');
+    try {
+      const res = await axios.get(`${API_URL}/users/${id}/contact/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setContactDetails(res.data);
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        setContactError(err.response.data.error || 'Daily limit reached.');
+      } else {
+        setContactError('Failed to load contact details securely.');
+      }
+    } finally {
+      setLoadingContact(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex justify-center py-24">
@@ -53,7 +80,7 @@ export default function MemberProfile() {
               src={member.profile_picture} 
               alt={member.full_name} 
               className="w-full h-full object-cover cursor-pointer"
-              onClick={() => setLightboxImg(member.profile_picture)} // Open profile pic in lightbox too
+              onClick={() => setLightboxImg(member.profile_picture)} 
             />
           ) : (
             <span>👤</span>
@@ -68,13 +95,18 @@ export default function MemberProfile() {
           <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
             {member.age || 'N/A'} Yrs • {member.cast || 'Community Not Disclosed'}
           </p>
-          <p className="text-xs text-gray-400">📍 Residing in {member.location || 'Mumbai, India'}</p>
+          <p className="text-xs text-gray-400">📍 Residing in {member.location || 'N/A'}</p>
         </div>
+        
+        {/* NEW: Replaced connection button with "View Contact Details" */}
         <div className="flex sm:flex-col gap-3 w-full sm:w-auto">
-          <button className="flex-1 sm:w-40 py-2.5 px-4 bg-primary hover:bg-primary-600 text-white rounded-lg text-xs font-medium transition-colors shadow-sm">
-            Send Connection Request
+          <button 
+            onClick={fetchContactDetails}
+            className="flex-1 sm:w-48 py-3 px-4 bg-primary hover:bg-primary-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
+          >
+            📞 View Contact Details
           </button>
-          <button className="flex-1 sm:w-40 py-2.5 px-4 border border-gray-200 dark:border-[#3a3634] text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
+          <button className="flex-1 sm:w-48 py-2.5 px-4 border border-gray-200 dark:border-[#3a3634] text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
             Shortlist Profile
           </button>
         </div>
@@ -105,12 +137,10 @@ export default function MemberProfile() {
                 {member.album.map((url, idx) => (
                   <div 
                     key={idx} 
-                    onClick={() => setLightboxImg(url)} // Trigger lightbox
+                    onClick={() => setLightboxImg(url)} 
                     className="aspect-square bg-gray-100 dark:bg-[#2b2725] rounded-xl overflow-hidden hover:opacity-90 transition-opacity cursor-pointer shadow-sm relative group"
                   >
                     <img src={url} alt={`Album ${idx + 1}`} className="w-full h-full object-cover" />
-                    
-                    {/* Hover text indicator */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold tracking-wide">
                       🔍 Expand
                     </div>
@@ -134,40 +164,91 @@ export default function MemberProfile() {
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{member.preferences || 'Open to all backgrounds.'}</p>
             </div>
           </div>
-
-          <div className="bg-gradient-to-br from-[#241B1E] to-[#171412] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 text-white text-center shadow-card relative overflow-hidden">
-            <span className="text-xl block">📹</span>
-            <h4 className="text-xs font-semibold mt-2 tracking-wide text-amber-wedding uppercase">Video Introduction</h4>
-            <p className="text-[11px] text-gray-400 mt-1">Interactive media intro reels are currently in deployment verification steps.</p>
-          </div>
         </div>
       </div>
 
-      {/* --- LIGHTBOX MODAL --- */}
-      {lightboxImg && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm transition-opacity"
-          onClick={() => setLightboxImg(null)} // Close when clicking the background
-        >
+      {/* --- CONTACT DETAILS MODAL --- */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm transition-opacity" onClick={() => setShowContactModal(false)}>
           <div 
-            className="relative max-w-5xl w-full flex flex-col items-center" 
-            onClick={e => e.stopPropagation()} // Prevent clicks on the image from closing the background
+            className="relative max-w-lg w-full bg-white dark:bg-[#211d1a] border border-gray-100 dark:border-[#393536] rounded-2xl p-6 sm:p-8 shadow-2xl animate-fadeIn" 
+            onClick={e => e.stopPropagation()}
           >
             <button 
-              onClick={() => setLightboxImg(null)}
-              className="absolute -top-12 right-0 text-white/70 hover:text-white text-4xl font-light transition-colors"
+              onClick={() => setShowContactModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 dark:hover:text-white text-2xl font-bold"
             >
               &times;
             </button>
-            <img 
-              src={lightboxImg} 
-              alt="Enlarged User Album" 
-              className="max-h-[90vh] w-auto object-contain rounded-lg shadow-2xl" 
-            />
+            
+            <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-[#2b2725] pb-3 mb-6">
+              Family & Contact Details
+            </h2>
+
+            {loadingContact ? (
+              <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"/>
+              </div>
+            ) : contactError ? (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg text-center">
+                <span className="text-2xl block mb-2">🛑</span>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">{contactError}</p>
+                <button onClick={() => setShowContactModal(false)} className="mt-4 px-4 py-2 bg-white dark:bg-black rounded text-xs font-bold border dark:border-gray-700">Close</button>
+              </div>
+            ) : contactDetails ? (
+              <div className="space-y-6">
+                
+                {/* Contact Grid */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-gray-50 dark:bg-[#1f1b18] p-3 rounded-lg border border-gray-100 dark:border-[#2b2725]">
+                    <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Primary Phone</span>
+                    <span className="font-semibold dark:text-white">{contactDetails.phone_number || 'N/A'}</span>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-[#1f1b18] p-3 rounded-lg border border-gray-100 dark:border-[#2b2725] truncate">
+                    <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Email Address</span>
+                    <span className="font-semibold dark:text-white">{contactDetails.email || 'N/A'}</span>
+                  </div>
+                </div>
+
+                {/* Family Details List */}
+                <ul className="space-y-3 text-sm border-t border-gray-100 dark:border-[#2b2725] pt-4">
+                  <li className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Time & Place of Birth:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.time_of_birth || 'N/A'} <br/> {contactDetails.place_of_birth || 'N/A'}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Astrology:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{contactDetails.astrology || 'N/A'}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Diet & Drink:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{contactDetails.diet || 'N/A'} • {contactDetails.drink || 'N/A'}</span>
+                  </li>
+                  <li className="flex justify-between border-t border-dashed border-gray-200 dark:border-[#3a3634] pt-3 mt-3">
+                    <span className="text-gray-500 font-medium">Mother's Details:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.mother_name || 'N/A'} <br/> <span className="text-xs font-normal text-primary">{contactDetails.mother_contact || 'No contact provided'}</span></span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Father's Details:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.father_name || 'N/A'} <br/> <span className="text-xs font-normal text-primary">{contactDetails.father_contact || 'No contact provided'}</span></span>
+                  </li>
+                </ul>
+
+              </div>
+            ) : null}
           </div>
         </div>
       )}
 
+      {/* --- LIGHTBOX MODAL --- */}
+      {lightboxImg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm transition-opacity" onClick={() => setLightboxImg(null)}>
+          <div className="relative max-w-5xl w-full flex flex-col items-center" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setLightboxImg(null)} className="absolute -top-12 right-0 text-white/70 hover:text-white text-4xl font-light transition-colors">&times;</button>
+            <img src={lightboxImg} alt="Enlarged User Album" className="max-h-[90vh] w-auto object-contain rounded-lg shadow-2xl" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,12 +6,19 @@ import { API_URL } from '../utils/api';
 export default function VerifyAccount() {
     const [status, setStatus] = useState('loading');
     const [photos, setPhotos] = useState([]);
+    const [step, setStep] = useState(1);
     const [profilePicUrl, setProfilePicUrl] = useState(null);
 
     // State for ID Proof (Using a simpler direct upload state for the ID)
     const [idProofUrls, setIdProofUrls] = useState([]);
     const [isUploadingId, setIsUploadingId] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+
+    const [formData, setFormData] = useState({
+        time_of_birth: '', place_of_birth: '', astrology: '',
+        diet: '', drink: '', mother_name: '', father_name: '',
+        mother_contact: '', father_contact: '', address: ''
+    });
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -28,6 +35,15 @@ export default function VerifyAccount() {
         };
         checkStatus();
     }, []);
+
+    const handleTextChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleNextStep = (e) => {
+        e.preventDefault();
+        setStep(2);
+    };
 
     // Simplified cloud upload for the ID Proof
     const handleIdUpload = async (event) => {
@@ -81,6 +97,7 @@ export default function VerifyAccount() {
         const token = localStorage.getItem('token');
         try {
             await axios.post(`${API_URL}/complete-onboarding/`, {
+                ...formData,
                 photos: photos,
                 profile_pic_url: profilePicUrl,
                 id_proofs: idProofUrls
@@ -106,45 +123,141 @@ export default function VerifyAccount() {
         );
     }
 
+    if (status === 'loading') return <div className="text-center mt-20">Loading...</div>;
+
     return (
-        <div className="max-w-3xl mx-auto p-6 space-y-8 mt-10">
-            <div className="bg-white dark:bg-[#1f1b18] p-6 rounded-xl shadow-card">
-                <h1 className="text-2xl font-serif font-bold mb-2">Complete Your Profile</h1>
-                <p className="text-gray-500 mb-6">Upload your public photos and a private ID proof to activate your account.</p>
+        <div className="max-w-3xl mx-auto p-4 sm:p-6 mt-6">
 
-                {/* 1. Public Profile Photos */}
-                <div className="mb-8 border-b pb-8">
-                    <PhotoManager
-                        photos={photos}
-                        setPhotos={setPhotos}
-                        profilePicUrl={profilePicUrl}
-                        setProfilePicUrl={setProfilePicUrl}
-                    />
+            {/* Visual Progress Bar */}
+            <div className="mb-8">
+                <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    <span className={step === 1 ? 'text-primary' : ''}>1. Family Details</span>
+                    <span className={step === 2 ? 'text-primary' : ''}>2. Media & ID</span>
                 </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                    <div className="bg-primary h-2 transition-all duration-300" style={{ width: step === 1 ? '50%' : '100%' }}></div>
+                </div>
+            </div>
 
-                {/* 2. Private ID Proof */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Verify Your Identity</h3>
-                    <p className="text-sm text-gray-500">Upload a government-issued ID (Aadhar, Passport, Pan). This is strictly confidential and only visible to administrators.</p>
+            <div className="bg-white dark:bg-[#1f1b18] p-6 rounded-xl shadow-card border border-gray-100 dark:border-[#2b2725]">
 
-                    <div className="flex items-center gap-4">
-                        <input type="file" accept="image/*" onChange={handleIdUpload} id="id-upload" className="hidden" />
-                        <label htmlFor="id-upload" className="cursor-pointer px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors">
-                            {isUploadingId ? 'Uploading Securely...' : 'Select ID Document'}
-                        </label>
-                        <span className="text-sm text-gray-500">{idProofUrls.length} document(s) uploaded</span>
+                {/* --- STEP 1: TEXT DETAILS --- */}
+                {step === 1 && (
+                    <form onSubmit={handleNextStep} className="space-y-6 animate-fadeIn">
+                        <div>
+                            <h1 className="text-2xl font-serif font-bold mb-2 dark:text-white">Family & Background</h1>
+                            <p className="text-gray-500 text-sm">Help compatible matches understand your roots and lifestyle.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Time of Birth *</label>
+                                <input type="time" name="time_of_birth" value={formData.time_of_birth} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Place of Birth *</label>
+                                <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleTextChange} required placeholder="City, State" className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Astrological Status *</label>
+                                <select name="astrology" value={formData.astrology} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700">
+                                    <option value="" disabled>Select Status</option>
+                                    <option value="None">None / Does not matter</option>
+                                    <option value="Manglik">Manglik</option>
+                                    <option value="Anshik Manglik">Anshik Manglik</option>
+                                    <option value="Shani">Shani</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Diet *</label>
+                                <select name="diet" value={formData.diet} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700">
+                                    <option value="" disabled>Select Diet</option>
+                                    <option value="Vegetarian">Vegetarian</option>
+                                    <option value="Non-Vegetarian">Non-Vegetarian</option>
+                                    <option value="Eggetarian">Eggetarian</option>
+                                    <option value="Jain">Jain</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Drinking *</label>
+                                <select name="drink" value={formData.drink} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700">
+                                    <option value="" disabled>Select Preference</option>
+                                    <option value="Never">Never</option>
+                                    <option value="Occasionally">Occasionally / Socially</option>
+                                    <option value="Regularly">Regularly</option>
+                                </select>
+                            </div>
+                            <div className="hidden md:block"></div> {/* Spacer */}
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Mother's Name *</label>
+                                <input type="text" name="mother_name" value={formData.mother_name} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Father's Name *</label>
+                                <input type="text" name="father_name" value={formData.father_name} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Mother's Contact (Optional)</label>
+                                <input type="text" name="mother_contact" value={formData.mother_contact} onChange={handleTextChange} className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Father's Contact (Optional)</label>
+                                <input type="text" name="father_contact" value={formData.father_contact} onChange={handleTextChange} className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Permanent Address (Optional)</label>
+                                <textarea name="address" value={formData.address} onChange={handleTextChange} rows="2" className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4">
+                            <button type="submit" className="px-8 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-600 transition shadow">
+                                Continue to Photos ➔
+                            </button>
+                        </div>
+                    </form>
+                )}
+
+                {/* --- STEP 2: MEDIA & ID --- */}
+                {step === 2 && (
+                    <div className="space-y-8 animate-fadeIn">
+                        <div>
+                            <h1 className="text-2xl font-serif font-bold mb-2 dark:text-white">Media & Verification</h1>
+                            <p className="text-gray-500 text-sm">Upload your public photos and a private ID proof to activate your account.</p>
+                        </div>
+
+                        <div className="border-b dark:border-gray-700 pb-8">
+                            <PhotoManager photos={photos} setPhotos={setPhotos} profilePicUrl={profilePicUrl} setProfilePicUrl={setProfilePicUrl} />
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Verify Your Identity</h3>
+                            <p className="text-sm text-gray-500">Upload a government-issued ID (Aadhar, Passport, Pan). This is strictly confidential and only visible to administrators.</p>
+
+                            <div className="flex items-center gap-4">
+                                <input type="file" accept="image/*" onChange={handleIdUpload} id="id-upload" className="hidden" />
+                                <label htmlFor="id-upload" className="cursor-pointer px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors">
+                                    {isUploadingId ? 'Uploading Securely...' : 'Select ID Document'}
+                                </label>
+                                <span className="text-sm text-gray-500">{idProofUrls.length} document(s) uploaded</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-8 flex justify-between items-center border-t dark:border-gray-700">
+                            <button onClick={() => setStep(1)} className="text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition">
+                                ← Back to Details
+                            </button>
+                            <button onClick={handleSubmit} disabled={photos.length === 0 || idProofUrls.length === 0} className="px-8 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-600 disabled:opacity-50 transition shadow">
+                                Submit for Verification
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div className="mt-10 flex justify-end">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={photos.length === 0 || idProofUrls.length === 0}
-                        className="px-6 py-3 bg-primary text-white font-bold rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
-                    >
-                        Submit for Verification
-                    </button>
-                </div>
+                )}
             </div>
         </div>
     );
