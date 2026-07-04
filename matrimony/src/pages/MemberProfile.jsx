@@ -16,6 +16,17 @@ export default function MemberProfile() {
   const [contactError, setContactError] = useState('');
   const [loadingContact, setLoadingContact] = useState(false);
 
+  // --- SHORTLIST STATE ---
+  const [isShortlisted, setIsShortlisted] = useState(false);
+  const [loadingShortlist, setLoadingShortlist] = useState(false);
+
+  // Initialize shortlist state from member data
+  useEffect(() => {
+    if (member) {
+      setIsShortlisted(member.is_shortlisted || false);
+    }
+  }, [member]);
+
   useEffect(() => {
     const fetchMemberProfile = async () => {
       const token = localStorage.getItem('token');
@@ -38,27 +49,47 @@ export default function MemberProfile() {
     setLoadingContact(true);
     setContactError('');
     setShowContactModal(true); // Open modal immediately so user sees loading state
-    
+
     const token = localStorage.getItem('token');
     try {
       const res = await axios.get(`${API_URL}/users/${id}/contact/`, {
         headers: { Authorization: `Token ${token}` }
       });
       setContactDetails(res.data);
+      console.log("Fetched contact details:", res.data);
     } catch (err) {
       if (err.response && err.response.status === 403) {
         setContactError(err.response.data.error || 'Daily limit reached.');
+        console.error("Contact fetch error:", err.response.data);
       } else {
         setContactError('Failed to load contact details securely.');
+        console.error("Unexpected error fetching contact details", err);
       }
     } finally {
       setLoadingContact(false);
     }
   };
 
+  // --- SHORTLIST HANDLER ---
+  const handleShortlist = async () => {
+    setLoadingShortlist(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await axios.post(`${API_URL}/users/${id}/shortlist/`, {}, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setIsShortlisted(res.data.status === 'added');
+    } catch (err) {
+      alert("Failed to update shortlist.");
+      console.error("Shortlist error:", err);
+    } finally {
+      setLoadingShortlist(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex justify-center py-24">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"/>
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -71,16 +102,16 @@ export default function MemberProfile() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      
+
       {/* Header / Avatar Section */}
       <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-premium flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
         <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-[#2b2725] flex items-center justify-center text-4xl overflow-hidden border-2 border-primary/20">
           {member.profile_picture ? (
-            <img 
-              src={member.profile_picture} 
-              alt={member.full_name} 
+            <img
+              src={member.profile_picture}
+              alt={member.full_name}
               className="w-full h-full object-cover cursor-pointer"
-              onClick={() => setLightboxImg(member.profile_picture)} 
+              onClick={() => setLightboxImg(member.profile_picture)}
             />
           ) : (
             <span>👤</span>
@@ -97,24 +128,31 @@ export default function MemberProfile() {
           </p>
           <p className="text-xs text-gray-400">📍 Residing in {member.location || 'N/A'}</p>
         </div>
-        
-        {/* NEW: Replaced connection button with "View Contact Details" */}
+
         <div className="flex sm:flex-col gap-3 w-full sm:w-auto">
-          <button 
+          <button
             onClick={fetchContactDetails}
             className="flex-1 sm:w-48 py-3 px-4 bg-primary hover:bg-primary-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
           >
             📞 View Contact Details
           </button>
-          <button className="flex-1 sm:w-48 py-2.5 px-4 border border-gray-200 dark:border-[#3a3634] text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 dark:hover:bg-[#2b2725] transition-colors">
-            Shortlist Profile
+          <button 
+            onClick={handleShortlist}
+            disabled={loadingShortlist}
+            className={`flex-1 sm:w-48 py-2.5 px-4 rounded-lg text-xs font-medium transition-colors ${
+              isShortlisted 
+                ? 'bg-amber-wedding/10 border border-amber-wedding text-amber-wedding hover:bg-red-50 hover:border-red-500 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:border-red-800' 
+                : 'border border-gray-200 dark:border-[#3a3634] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#2b2725]'
+            }`}
+          >
+            {isShortlisted ? '★ Shortlisted' : '☆ Shortlist'}
           </button>
         </div>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Left Column */}
         <div className="md:col-span-2 space-y-6">
           <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-card">
@@ -131,13 +169,13 @@ export default function MemberProfile() {
                 {member.album?.length || 0} Photos
               </span>
             </div>
-            
+
             {member.album && member.album.length > 0 ? (
               <div className="grid grid-cols-3 gap-3">
                 {member.album.map((url, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={() => setLightboxImg(url)} 
+                  <div
+                    key={idx}
+                    onClick={() => setLightboxImg(url)}
                     className="aspect-square bg-gray-100 dark:bg-[#2b2725] rounded-xl overflow-hidden hover:opacity-90 transition-opacity cursor-pointer shadow-sm relative group"
                   >
                     <img src={url} alt={`Album ${idx + 1}`} className="w-full h-full object-cover" />
@@ -154,86 +192,66 @@ export default function MemberProfile() {
             )}
           </div>
         </div>
-        
+
         {/* Right Column */}
         <div className="space-y-6">
+          {/* NEW PUBLIC STATS CARD */}
           <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-card">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 border-b border-gray-50 dark:border-[#2b2725] pb-2 mb-3">Partner Preferences</h3>
-            <div className="space-y-1.5 text-xs">
-              <p className="text-gray-500"><strong className="text-gray-700 dark:text-gray-300 font-medium">Desired Qualities:</strong></p>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{member.preferences || 'Open to all backgrounds.'}</p>
-            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 border-b border-gray-50 dark:border-[#2b2725] pb-2 mb-3">Lifestyle & Background</h3>
+            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+              <li className="flex justify-between"><strong>Height/Weight:</strong> <span>{member.height || 'N/A'} • {member.weight ? `${member.weight} kg` : 'N/A'}</span></li>
+              <li className="flex justify-between"><strong>Complexion:</strong> <span>{member.complexion || 'N/A'}</span></li>
+              <li className="flex justify-between"><strong>Diet & Drink:</strong> <span>{member.diet || 'N/A'} • {member.drink || 'N/A'}</span></li>
+              <li className="flex justify-between"><strong>Astrology:</strong> <span>{member.astrology || 'N/A'}</span></li>
+              <li className="flex justify-between"><strong>Birth Info:</strong> <span className="text-right">{member.time_of_birth || 'N/A'}<br />{member.place_of_birth || ''}</span></li>
+              <li className="flex justify-between border-t dark:border-[#2b2725] pt-2"><strong>Parents:</strong> <span className="text-right">{member.father_name || 'N/A'}<br />{member.mother_name || 'N/A'}</span></li>
+            </ul>
+          </div>
+
+          <div className="bg-white dark:bg-[#1f1b18] border border-gray-100 dark:border-[#2b2725] rounded-2xl p-6 shadow-card">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 border-b border-gray-50 dark:border-[#2b2725] pb-2 mb-3">Expectations from Partner</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{member.preferences || 'Open to compatible backgrounds.'}</p>
           </div>
         </div>
       </div>
 
       {/* --- CONTACT DETAILS MODAL --- */}
       {showContactModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm transition-opacity" onClick={() => setShowContactModal(false)}>
-          <div 
-            className="relative max-w-lg w-full bg-white dark:bg-[#211d1a] border border-gray-100 dark:border-[#393536] rounded-2xl p-6 sm:p-8 shadow-2xl animate-fadeIn" 
-            onClick={e => e.stopPropagation()}
-          >
-            <button 
-              onClick={() => setShowContactModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 dark:hover:text-white text-2xl font-bold"
-            >
-              &times;
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => setShowContactModal(false)}>
+          <div className="relative bg-white dark:bg-[#1f1b18] rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-100 dark:border-[#2b2725]" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowContactModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl font-light">&times;</button>
             
-            <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white border-b border-gray-100 dark:border-[#2b2725] pb-3 mb-6">
-              Family & Contact Details
-            </h2>
-
+            <h2 className="text-xl font-bold mb-6 pr-8 dark:text-white">Contact Details</h2>
+            
             {loadingContact ? (
-              <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"/>
+              <div className="flex justify-center py-12">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : contactError ? (
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg text-center">
-                <span className="text-2xl block mb-2">🛑</span>
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">{contactError}</p>
-                <button onClick={() => setShowContactModal(false)} className="mt-4 px-4 py-2 bg-white dark:bg-black rounded text-xs font-bold border dark:border-gray-700">Close</button>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg">
+                <p className="text-red-700 dark:text-red-300 text-sm font-medium">{contactError}</p>
               </div>
             ) : contactDetails ? (
-              <div className="space-y-6">
-                
-                {/* Contact Grid */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-gray-50 dark:bg-[#1f1b18] p-3 rounded-lg border border-gray-100 dark:border-[#2b2725]">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Primary Phone</span>
-                    <span className="font-semibold dark:text-white">{contactDetails.phone_number || 'N/A'}</span>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-[#1f1b18] p-3 rounded-lg border border-gray-100 dark:border-[#2b2725] truncate">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Email Address</span>
-                    <span className="font-semibold dark:text-white">{contactDetails.email || 'N/A'}</span>
-                  </div>
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-[#2b2725] p-3 rounded-lg">
+                  <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Primary Phone</span>
+                  <span className="font-semibold dark:text-white text-lg">{contactDetails.phone_number || 'N/A'}</span>
+                </div>
+                <div className="bg-gray-50 dark:bg-[#2b2725] p-3 rounded-lg">
+                  <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Email Address</span>
+                  <span className="font-semibold dark:text-white">{contactDetails.email || 'N/A'}</span>
                 </div>
 
-                {/* Family Details List */}
-                <ul className="space-y-3 text-sm border-t border-gray-100 dark:border-[#2b2725] pt-4">
-                  <li className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Time & Place of Birth:</span>
-                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.time_of_birth || 'N/A'} <br/> {contactDetails.place_of_birth || 'N/A'}</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Astrology:</span>
-                    <span className="text-gray-900 dark:text-white font-semibold">{contactDetails.astrology || 'N/A'}</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Diet & Drink:</span>
-                    <span className="text-gray-900 dark:text-white font-semibold">{contactDetails.diet || 'N/A'} • {contactDetails.drink || 'N/A'}</span>
-                  </li>
-                  <li className="flex justify-between border-t border-dashed border-gray-200 dark:border-[#3a3634] pt-3 mt-3">
-                    <span className="text-gray-500 font-medium">Mother's Details:</span>
-                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.mother_name || 'N/A'} <br/> <span className="text-xs font-normal text-primary">{contactDetails.mother_contact || 'No contact provided'}</span></span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span className="text-gray-500 font-medium">Father's Details:</span>
-                    <span className="text-gray-900 dark:text-white font-semibold text-right">{contactDetails.father_name || 'N/A'} <br/> <span className="text-xs font-normal text-primary">{contactDetails.father_contact || 'No contact provided'}</span></span>
-                  </li>
-                </ul>
+                <div className="border-t border-gray-100 dark:border-[#2b2725] pt-4 text-sm">
+                  <p className="text-gray-500 dark:text-gray-400 mb-2 font-medium">Family Contacts:</p>
+                  <p className="dark:text-gray-300">Father: {contactDetails.father_contact || 'N/A'}</p>
+                  <p className="dark:text-gray-300">Mother: {contactDetails.mother_contact || 'N/A'}</p>
+                </div>
 
+                <div className="border-t border-gray-100 dark:border-[#2b2725] pt-4 text-sm">
+                  <p className="text-gray-500 dark:text-gray-400 mb-2 font-medium">Residential Address:</p>
+                  <p className="dark:text-gray-300">{contactDetails.address || 'Address not provided by user.'}</p>
+                </div>
               </div>
             ) : null}
           </div>

@@ -33,13 +33,12 @@ export default function AdminUserManagement() {
   const openEditor = (user) => {
     setEditingUser(user);
     setFormData({
-      first_name: user.first_name,
-      last_name: user.last_name,
-      age: user.age,
-      cast: user.cast,
-      location: user.location,
-      bio: user.bio,
-      is_hidden: user.is_hidden
+      first_name: user.first_name, last_name: user.last_name, email: user.email, phone_number: user.phone_number,
+      cast: user.cast, location: user.location, bio: user.bio, is_hidden: user.is_hidden,
+      education: user.education, profession: user.profession,
+      height: user.height, weight: user.weight, complexion: user.complexion,
+      time_of_birth: user.time_of_birth, place_of_birth: user.place_of_birth, astrology: user.astrology,
+      diet: user.diet, drink: user.drink, mother_name: user.mother_name, father_name: user.father_name
     });
   };
 
@@ -171,33 +170,25 @@ export default function AdminUserManagement() {
 
           {/* Form Structure - Multi-column fallback layouts */}
           <form onSubmit={handleSaveUser} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">First Name</label>
-                <input type="text" name="first_name" value={formData.first_name || ''} onChange={handleInputChange} className="w-full p-3 border rounded-lg dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Last Name</label>
-                <input type="text" name="last_name" value={formData.last_name || ''} onChange={handleInputChange} className="w-full p-3 border rounded-lg dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Age</label>
-                <input type="number" name="age" value={formData.age || ''} onChange={handleInputChange} className="w-full p-3 border rounded-lg dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Location</label>
-                <input type="text" name="location" value={formData.location || ''} onChange={handleInputChange} className="w-full p-3 border rounded-lg dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary" />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Bio</label>
-                <textarea name="bio" value={formData.bio || ''} onChange={handleInputChange} rows="3" className="w-full p-3 border rounded-lg dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {['first_name', 'last_name', 'phone_number', 'email', 'location', 'cast', 'education', 'profession', 'height', 'weight', 'complexion', 'time_of_birth', 'place_of_birth', 'astrology', 'diet', 'drink', 'mother_name', 'father_name'].map(field => (
+                <div key={field}>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">{field.replace(/_/g, ' ')}</label>
+                  <input
+                    type="text" name={field}
+                    value={formData[field] || ''}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded bg-gray-50 dark:bg-[#2b2725] dark:border-gray-700 dark:text-white focus:outline-primary text-sm"
+                  />
+                </div>
+              ))}
+              <div className="md:col-span-3">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Bio</label>
+                <textarea name="bio" value={formData.bio || ''} onChange={handleInputChange} rows="2" className="w-full p-2 border rounded bg-gray-50 dark:bg-[#2b2725] dark:border-gray-700 dark:text-white text-sm" />
               </div>
             </div>
-
             <div className="flex justify-end">
-              <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-600 transition-colors shadow">
-                {isSaving ? 'Saving...' : 'Save Text Details'}
-              </button>
+              <button type="submit" className="px-6 py-2 bg-primary text-white font-bold rounded hover:bg-primary-600">Save Master Record</button>
             </div>
           </form>
         </div>

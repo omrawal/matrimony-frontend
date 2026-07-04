@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import PhotoManager from '../components/PhotoManager';
+import Select from 'react-select';
+import { FILTER_CAST_OPTIONS, FILTER_LOCATION_OPTIONS, generateHeightOptions } from '../utils/constants';
 import { API_URL } from '../utils/api';
 
 export default function VerifyAccount() {
@@ -17,8 +19,11 @@ export default function VerifyAccount() {
     const [formData, setFormData] = useState({
         time_of_birth: '', place_of_birth: '', astrology: '',
         diet: '', drink: '', mother_name: '', father_name: '',
-        mother_contact: '', father_contact: '', address: ''
+        mother_contact: '', father_contact: '', address: '',
+        location: '', height: '', weight: '', complexion: '',
+        cast: '', education: '', profession: ''
     });
+    const HEIGHT_OPTIONS = generateHeightOptions();
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -136,6 +141,57 @@ export default function VerifyAccount() {
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                     <div className="bg-primary h-2 transition-all duration-300" style={{ width: step === 1 ? '50%' : '100%' }}></div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b dark:border-[#2b2725] pb-6 mb-6">
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Current City / Location *</label>
+                    <Select
+                        options={FILTER_LOCATION_OPTIONS}
+                        onChange={(opt) => setFormData({ ...formData, location: opt.value })}
+                        className="text-sm text-black" required
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Height *</label>
+                    <Select
+                        options={HEIGHT_OPTIONS}
+                        onChange={(opt) => setFormData({ ...formData, height: opt.value })}
+                        className="text-sm text-black" required
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Weight (kg) *</label>
+                    <input type="number" name="weight" value={formData.weight} onChange={handleTextChange} required className="w-full p-2.5 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Complexion *</label>
+                    <select name="complexion" value={formData.complexion} onChange={handleTextChange} required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700">
+                        <option value="" disabled>Select</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Wheatish">Wheatish</option>
+                        <option value="Dusky">Dusky</option>
+                        <option value="Dark">Dark</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Community / Cast *</label>
+                    <Select
+                        options={CAST_OPTIONS}
+                        onChange={(opt) => setFormData({ ...formData, cast: opt.value })}
+                        className="text-sm text-black" required
+                    />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b dark:border-[#2b2725] pb-6 mb-6">
+                    <div>
+                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Highest Education *</label>
+                        <input type="text" name="education" value={formData.education} onChange={handleTextChange} placeholder="e.g., B.Tech, MBA" required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Current Profession *</label>
+                        <input type="text" name="profession" value={formData.profession} onChange={handleTextChange} placeholder="e.g., Software Engineer at Citi" required className="w-full p-3 rounded bg-gray-50 dark:bg-[#2b2725] dark:text-white border border-gray-200 dark:border-gray-700" />
+                    </div>
                 </div>
             </div>
 
