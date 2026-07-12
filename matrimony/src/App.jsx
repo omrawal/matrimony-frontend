@@ -11,6 +11,7 @@ import MemberProfile from './pages/MemberProfile';
 import VerifyAccount from './pages/VerifyAccount';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
+import Shortlist from './pages/Shortlist';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+        <Route path="/shortlist" element={<ProtectedRoute><Layout><Shortlist /></Layout></ProtectedRoute>} />
         <Route path="/member/:id" element={<ProtectedRoute><Layout><MemberProfile/></Layout></ProtectedRoute>} />
         <Route path="/verify-account" element={<ProtectedRoute><Layout><VerifyAccount /></Layout></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />

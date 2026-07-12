@@ -15,9 +15,20 @@ export default function Register() {
     first_name: '',
     last_name: '',
     phone_number: '',
-    age: '',
+    date_of_birth: '',
     gender: ''
   });
+
+  const calculateAge = (dobString) => {
+    const today = new Date();
+    const birthDate = new Date(dobString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,6 +46,13 @@ export default function Register() {
     }
     if (formData.password.length < 8) {
       return setErrorMessage('Password must be at least 8 characters long.');
+    }
+    if (!formData.date_of_birth) {
+      return setErrorMessage('Please enter your date of birth.');
+    }
+    const userAge = calculateAge(formData.date_of_birth);
+    if (userAge < 18) {
+      return setErrorMessage(`You must be 18 or older to register. Current calculated age: ${userAge}`);
     }
     setIsSubmitting(true);
     try {
@@ -152,14 +170,13 @@ export default function Register() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input
-                type="number"
+                type="date"
                 className="col-span-1 w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-900 dark:text-white focus:outline-primary"
-                name="age"
-                value={formData.age}
+                name="date_of_birth"
+                value={formData.date_of_birth}
                 onChange={handleChange}
-                placeholder="Age *"
-                min="18"
                 required
+                title="Date of Birth"
               />
               <select
                 className="col-span-2 w-full p-3 rounded-lg border border-gray-200 dark:border-[#2b2725] bg-transparent text-sm text-gray-700 dark:text-gray-200 focus:outline-primary"
