@@ -178,7 +178,7 @@ export default function VerifyAccount() {
                 <div>
                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Community / Cast *</label>
                     <Select
-                        options={CAST_OPTIONS}
+                        options={FILTER_CAST_OPTIONS}
                         onChange={(opt) => setFormData({ ...formData, cast: opt.value })}
                         className="text-sm text-black" required
                     />
