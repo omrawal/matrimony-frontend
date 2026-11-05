@@ -22,6 +22,8 @@ export default function Layout({ children }) {
               <>
                 <Link to="/admin" className="hover:text-primary transition-colors">Verifications</Link>
                 <Link to="/admin/users" className="hover:text-primary transition-colors">Manage Users</Link>
+                <Link to="/admin/renewals" className="hover:text-primary transition-colors">Renewals</Link>
+                <Link to="/admin/create-user" className="hover:text-primary transition-colors">Create Profile</Link>
               </>
             ) : (
               <>

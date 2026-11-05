@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../utils/api';
 
 export default function AdminDashboard() {
   const [pendingUsers, setPendingUsers] = useState([]);
+  const [renewalCount, setRenewalCount] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Lightbox State
@@ -32,7 +35,44 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchPendingUsers();
+    fetchRenewalCount();
   }, []);
+
+  const fetchRenewalCount = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await axios.get(`${API_URL}/admin/renewal-pending/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setRenewalCount(res.data.length);
+    } catch (err) {
+      console.error('Failed to fetch renewal count', err);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/admin/export-pdf/`, {
+        headers: { Authorization: `Token ${token}` },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `matrimony_users_summary_${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download PDF.');
+      console.error('PDF download failed:', err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // Toggle Checkbox Logic
   const togglePhotoSelection = (userId, photoUrl) => {
@@ -96,6 +136,34 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold dark:text-white mb-8">Admin Verification Dashboard</h1>
+      
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white dark:bg-[#1f1b18] p-6 rounded-xl shadow-card">
+          <div className="text-sm text-gray-500 mb-2">Pending Verifications</div>
+          <div className="text-3xl font-bold text-primary">{pendingUsers.length}</div>
+          <Link to="/admin" className="text-xs text-primary hover:underline mt-2 inline-block">Review Now →</Link>
+        </div>
+        <div className="bg-white dark:bg-[#1f1b18] p-6 rounded-xl shadow-card">
+          <div className="text-sm text-gray-500 mb-2">Renewal Pending</div>
+          <div className="text-3xl font-bold text-orange-600">{renewalCount}</div>
+          <Link to="/admin/renewals" className="text-xs text-primary hover:underline mt-2 inline-block">Manage Renewals →</Link>
+        </div>
+        <div className="bg-white dark:bg-[#1f1b18] p-6 rounded-xl shadow-card">
+          <div className="text-sm text-gray-500 mb-2">Quick Actions</div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Link to="/admin/users" className="text-xs bg-primary text-white px-3 py-1.5 rounded hover:bg-primary-600 transition">Manage Users</Link>
+            <Link to="/admin/create-user" className="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 transition">+ Create Profile</Link>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded hover:bg-purple-700 transition disabled:opacity-50"
+            >
+              {isDownloading ? 'Generating...' : '⬇ PDF'}
+            </button>
+          </div>
+        </div>
+      </div>
       
       {pendingUsers.length === 0 ? (
         <div className="bg-white dark:bg-[#1f1b18] p-8 rounded-xl shadow text-center text-gray-500">

@@ -11,6 +11,8 @@ import MemberProfile from './pages/MemberProfile';
 import VerifyAccount from './pages/VerifyAccount';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
+import AdminRenewals from './pages/AdminRenewals';
+import AdminCreateUser from './pages/AdminCreateUser';
 import Shortlist from './pages/Shortlist';
 
 export default function App() {
@@ -28,6 +30,8 @@ export default function App() {
         <Route path="/verify-account" element={<ProtectedRoute><Layout><VerifyAccount /></Layout></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute><Layout><AdminUserManagement /></Layout></ProtectedRoute>} />
+        <Route path="/admin/renewals" element={<ProtectedRoute><Layout><AdminRenewals /></Layout></ProtectedRoute>} />
+        <Route path="/admin/create-user" element={<ProtectedRoute><Layout><AdminCreateUser /></Layout></ProtectedRoute>} />
         <Route path="*" element={localStorage.getItem('token') ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
       </Routes>
     </Router>

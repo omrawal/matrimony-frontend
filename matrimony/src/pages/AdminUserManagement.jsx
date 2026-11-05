@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../utils/api';
 
@@ -11,6 +12,7 @@ export default function AdminUserManagement() {
 
   // NEW STATE: Track photo upload
   const [isUploading, setIsUploading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
@@ -40,6 +42,30 @@ export default function AdminUserManagement() {
       time_of_birth: user.time_of_birth, place_of_birth: user.place_of_birth, astrology: user.astrology,
       diet: user.diet, drink: user.drink, mother_name: user.mother_name, father_name: user.father_name
     });
+  };
+
+    const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/admin/export-pdf/`, {
+        headers: { Authorization: `Token ${token}` },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `matrimony_users_summary_${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download PDF. Check console.');
+      console.error('PDF download failed:', err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const closeEditor = () => {
@@ -235,7 +261,21 @@ export default function AdminUserManagement() {
   // ==========================================
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold dark:text-white mb-8">Verified User Management</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold dark:text-white">Verified User Management</h1>
+        <div className="flex gap-3">
+        <Link to="/admin/create-user" className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition shadow">
+          + Create Profile
+        </Link>
+        <button
+          onClick={handleDownloadPdf}
+          disabled={isDownloading}
+          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow disabled:opacity-50"
+        >
+          {isDownloading ? 'Generating...' : '⬇ Download PDF'}
+        </button>
+      </div>
+      </div>
 
       <div className="bg-white dark:bg-[#1f1b18] rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -243,7 +283,9 @@ export default function AdminUserManagement() {
             <thead className="bg-gray-50 dark:bg-[#2b2725] text-gray-500 text-sm uppercase">
               <tr>
                 <th className="p-4">User</th>
+                <th className="p-4">BSS ID</th>
                 <th className="p-4">Location</th>
+                <th className="p-4">Visibility</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -258,7 +300,19 @@ export default function AdminUserManagement() {
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
                   </td>
+                  <td className="p-4 font-mono text-sm font-bold text-primary">{user.username}</td>
                   <td className="p-4 text-sm text-gray-600 dark:text-gray-300">{user.location || 'N/A'}</td>
+                  <td className="p-4 text-sm">
+                    {(() => {
+                      if (!user.visibility_expires_at) return <span className="text-gray-500">No expiry</span>;
+                      const now = new Date();
+                      const exp = new Date(user.visibility_expires_at);
+                      const days = Math.floor((exp - now) / (1000*60*60*24));
+                      if (days < 0) return <span className="text-red-600 font-bold">Expired</span>;
+                      if (days < 30) return <span className="text-orange-600 font-bold">{days}d left</span>;
+                      return <span className="text-green-600">{days}d</span>;
+                    })()}
+                  </td>
                   <td className="p-4">
                     {user.is_hidden ? (
                       <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">Hidden</span>
