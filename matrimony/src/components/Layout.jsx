@@ -9,7 +9,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-[#171412] text-gray-800 dark:text-gray-100">
       <header className="py-4 border-b border-gray-200 dark:border-[#2b2725]">
-        <div className="container flex flex-wrap items-center justify-between gap-4">
+        <div className="container flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           
           {/* Logo - Dynamically routes to correct home */}
           <Link to={isAdminRoute ? "/admin" : "/dashboard"} className="text-xl font-semibold text-primary">
@@ -17,7 +17,7 @@ export default function Layout({ children }) {
           </Link>
 
           {/* Navigation - Conditionally rendered based on admin status */}
-          <nav className="flex flex-1 sm:flex-none order-last sm:order-none justify-center sm:justify-start gap-6 text-sm text-gray-600 dark:text-gray-300 font-medium">
+          <nav className="order-last flex w-full flex-wrap justify-start gap-x-4 gap-y-2 text-xs font-medium text-gray-600 dark:text-gray-300 sm:order-none sm:w-auto sm:flex-none sm:gap-6 sm:text-sm">
             {isAdminRoute ? (
               <>
                 <Link to="/admin" className="hover:text-primary transition-colors">Verifications</Link>

@@ -13,6 +13,7 @@ export default function AdminUserManagement() {
   // NEW STATE: Track photo upload
   const [isUploading, setIsUploading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
@@ -160,6 +161,18 @@ export default function AdminUserManagement() {
 
   if (loading) return <div className="p-10 text-center">Loading...</div>;
 
+  const q = searchQuery.trim().toLowerCase();
+  const filteredUsers = users.filter((u) => {
+    if (!q) return true;
+    return (
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.username || '').toLowerCase().includes(q) ||
+      (u.location || '').toLowerCase().includes(q) ||
+      (u.phone_number || '').toLowerCase().includes(q)
+    );
+  });
+
   // ==========================================
   // VIEW 1: THE EDITOR
   // ==========================================
@@ -260,38 +273,121 @@ export default function AdminUserManagement() {
   // VIEW 2: THE USER LIST (DEFAULT)
   // ==========================================
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold dark:text-white">Verified User Management</h1>
-        <div className="flex gap-3">
-        <Link to="/admin/create-user" className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition shadow">
+    <div className="max-w-6xl mx-auto p-3 sm:p-6 space-y-5 sm:space-y-6">
+      <div className="mb-5 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold leading-tight dark:text-white">Verified User Management</h1>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+        <Link to="/admin/create-user" className="inline-flex min-h-11 items-center justify-center px-3 sm:px-4 py-2 text-center text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition shadow">
           + Create Profile
         </Link>
         <button
           onClick={handleDownloadPdf}
           disabled={isDownloading}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center px-3 sm:px-4 py-2 text-center text-sm sm:text-base bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow disabled:opacity-50"
         >
           {isDownloading ? 'Generating...' : '⬇ Download PDF'}
         </button>
       </div>
       </div>
 
-      <div className="bg-white dark:bg-[#1f1b18] rounded-xl shadow-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left whitespace-nowrap">
-            <thead className="bg-gray-50 dark:bg-[#2b2725] text-gray-500 text-sm uppercase">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, email, username, location..."
+          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 pl-10 text-sm dark:border-gray-700 dark:bg-[#2b2725] dark:text-white focus:outline-primary"
+        />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {filteredUsers.length === 0 ? (
+          <div className="rounded-xl bg-white p-8 text-center text-gray-500 shadow-card dark:bg-[#1f1b18]">
+            No users match your search.
+          </div>
+        ) : (
+          filteredUsers.map(user => (
+            <article key={user.id} className="rounded-xl bg-white p-4 shadow-card dark:bg-[#1f1b18]">
+              <div className="flex min-w-0 items-center gap-3">
+                <img src={user.profile_picture || 'https://via.placeholder.com/50'} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold dark:text-white">{user.full_name}</p>
+                  <p className="truncate text-xs text-gray-500">{user.email}</p>
+                </div>
+                {user.is_hidden ? (
+                  <span className="shrink-0 rounded bg-red-100 px-2 py-1 text-xs font-bold text-red-700">Hidden</span>
+                ) : (
+                  <span className="shrink-0 rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-700">Active</span>
+                )}
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 border-t border-gray-100 pt-3 text-sm dark:border-[#2b2725]">
+                <div className="min-w-0">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">BSS ID</dt>
+                  <dd className="mt-1 truncate font-mono font-bold text-primary">{user.username}</dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">Location</dt>
+                  <dd className="mt-1 truncate text-gray-700 dark:text-gray-300">{user.location || 'N/A'}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400">Visibility</dt>
+                  <dd className="mt-1">
+                    {(() => {
+                      if (!user.visibility_expires_at) return <span className="text-gray-500">No expiry</span>;
+                      const days = Math.floor((new Date(user.visibility_expires_at) - new Date()) / (1000 * 60 * 60 * 24));
+                      if (days < 0) return <span className="font-bold text-red-600">Expired</span>;
+                      if (days < 30) return <span className="font-bold text-orange-600">{days}d left</span>;
+                      return <span className="text-green-600">{days}d</span>;
+                    })()}
+                  </dd>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => openEditor(user)}
+                    className="min-h-11 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-bold transition hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+                  >
+                    Manage User
+                  </button>
+                </div>
+              </dl>
+            </article>
+          ))
+        )}
+      </div>
+
+    <div className="hidden overflow-hidden rounded-xl bg-white shadow-card dark:bg-[#1f1b18] md:block">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left whitespace-nowrap">
+          <thead className="bg-gray-50 dark:bg-[#2b2725] text-gray-500 text-sm uppercase">
+            <tr>
+              <th className="p-4">User</th>
+              <th className="p-4">BSS ID</th>
+              <th className="p-4">Location</th>
+              <th className="p-4">Visibility</th>
+              <th className="p-4">Status</th>
+              <th className="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-[#2b2725]">
+            {filteredUsers.length === 0 ? (
               <tr>
-                <th className="p-4">User</th>
-                <th className="p-4">BSS ID</th>
-                <th className="p-4">Location</th>
-                <th className="p-4">Visibility</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <td colSpan={6} className="p-10 text-center text-gray-500">
+                  No users match your search.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-[#2b2725]">
-              {users.map(user => (
+            ) : (
+              filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-black/10 transition">
                   <td className="p-4 flex items-center gap-3">
                     <img src={user.profile_picture || 'https://via.placeholder.com/50'} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
@@ -329,11 +425,12 @@ export default function AdminUserManagement() {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
+    </div>
     </div>
   );
 }
